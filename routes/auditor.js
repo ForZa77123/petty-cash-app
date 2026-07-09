@@ -15,7 +15,7 @@ router.get('/dashboard', hasRole('AUDITOR'), async (req, res) => {
       topupCount:    (await db.getAsync('SELECT COUNT(*) AS c FROM petty_cash_funds')).c,
     };
     const resIn  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-    const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
     const totalIn = parseFloat(resIn.totalIn || 0);
     const totalOut = parseFloat(resOut.totalOut || 0);
     const balance = totalIn - totalOut;
@@ -130,7 +130,7 @@ router.get('/mutasi', hasRole('AUDITOR'), async (req, res) => {
     const ditolak  = await db.allAsync(rejectedSql + ' ORDER BY waktu DESC', params);
 
     const resIn  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-    const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
     const totalIn = parseFloat(resIn.totalIn || 0);
     const totalOut = parseFloat(resOut.totalOut || 0);
 

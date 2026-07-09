@@ -4,8 +4,8 @@ const db = require('../db/init');
 const { hasRole } = require('../middleware/auth');
 
 async function getBalance() {
-  const resIn = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-  const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+  const resIn = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds`);
+  const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
   const totalIn = parseFloat(resIn.totalIn || 0);
   const totalOut = parseFloat(resOut.totalOut || 0);
   return { totalIn, totalOut, balance: totalIn - totalOut };

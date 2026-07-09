@@ -6,7 +6,7 @@ const { hasRole } = require('../middleware/auth');
 router.get('/dashboard', hasRole('MANAGER'), async (req, res) => {
   try {
     const resIn = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-    const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
     const totalIn = parseFloat(resIn.totalIn || 0);
     const totalOut = parseFloat(resOut.totalOut || 0);
     const balance = totalIn - totalOut;
@@ -33,7 +33,7 @@ router.get('/laporan', hasRole('MANAGER'), async (req, res) => {
     const kasmasuk = await db.allAsync('SELECT f.*, u.name AS actor FROM petty_cash_funds f JOIN users u ON f.created_by=u.id ORDER BY f.created_at DESC');
     const kaskeluar = await db.allAsync("SELECT r.*, u.name AS actor, c.name AS category_name FROM reimbursement_requests r JOIN users u ON r.requester_id=u.id JOIN categories c ON r.category_id=c.id WHERE r.status='APPROVED' ORDER BY r.reviewed_at DESC");
     const resIn = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-    const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
     const totalIn = parseFloat(resIn.totalIn || 0);
     const totalOut = parseFloat(resOut.totalOut || 0);
     res.render('manager/laporan', { user: req.session.user, kasmasuk, kaskeluar, totalIn, totalOut, balance: totalIn - totalOut });
