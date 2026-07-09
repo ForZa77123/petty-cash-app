@@ -1,0 +1,89 @@
+<%- include('../partials/header', { pageTitle: 'Dashboard Auditor', activePage: 'dashboard' }) %>
+
+<!-- Stats Row 1 -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #6366f1;">
+      <div class="stat-lbl">Saldo Kas</div>
+      <div class="stat-val" style="color:#4f46e5;font-size:18px;">Rp <%= Number(balance).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #22c55e;">
+      <div class="stat-lbl">Total Kas Masuk</div>
+      <div class="stat-val text-success" style="font-size:18px;">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #ef4444;">
+      <div class="stat-lbl">Total Kas Keluar</div>
+      <div class="stat-val text-danger" style="font-size:18px;">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #0ea5e9;">
+      <div class="stat-lbl">Total Pengajuan</div>
+      <div class="stat-val" style="color:#0369a1;"><%= stats.totalRequests %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Row 2 -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card text-center" style="border-left:4px solid #f59e0b;">
+      <div class="stat-lbl">⏳ Menunggu</div>
+      <div class="stat-val text-warning"><%= stats.pending %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card text-center" style="border-left:4px solid #22c55e;">
+      <div class="stat-lbl">✅ Disetujui</div>
+      <div class="stat-val text-success"><%= stats.approved %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card text-center" style="border-left:4px solid #ef4444;">
+      <div class="stat-lbl">❌ Ditolak</div>
+      <div class="stat-val text-danger"><%= stats.rejected %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Audit Trail -->
+<div class="data-table">
+  <div class="tbl-head">
+    <span>🔍 Aktivitas Terbaru (Audit Trail)</span>
+    <div class="d-flex gap-2">
+      <a href="/auditor/pengajuan" class="btn btn-sm btn-outline-secondary">Semua Pengajuan</a>
+      <a href="/auditor/mutasi" class="btn btn-sm btn-outline-secondary">Ledger Lengkap</a>
+    </div>
+  </div>
+  <table class="table table-hover">
+    <thead>
+      <tr><th>Waktu</th><th>Jenis</th><th>Pelaku</th><th>Keterangan</th><th>Jumlah</th><th>Reviewer</th></tr>
+    </thead>
+    <tbody>
+      <% recentActivity.forEach(a => { %>
+      <tr>
+        <td style="white-space:nowrap;font-size:12px;" class="text-muted"><%= a.waktu ? new Date(a.waktu).toLocaleString('id-ID', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '-' %></td>
+        <td>
+          <% if(a.jenis==='TOP-UP') { %><span class="sbadge sbadge-masuk">⬆ Top-Up</span>
+          <% } else if(a.jenis==='DISETUJUI') { %><span class="sbadge sbadge-approved">✅ Setuju</span>
+          <% } else if(a.jenis==='DITOLAK') { %><span class="sbadge sbadge-rejected">❌ Tolak</span>
+          <% } else { %><span class="sbadge sbadge-pending">📋 Pengajuan</span><% } %>
+        </td>
+        <td><strong><%= a.pelaku %></strong></td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= a.description %>"><%= a.description %></td>
+        <td class="currency fw-semibold">Rp <%= Number(a.amount).toLocaleString('id-ID') %></td>
+        <td class="text-muted" style="font-size:12px;"><%= a.reviewer || '-' %></td>
+      </tr>
+      <% }) %>
+      <% if(!recentActivity.length) { %>
+        <tr><td colspan="6" class="text-center text-muted py-4">Belum ada aktivitas.</td></tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,80 @@
+<%- include('../partials/header', { pageTitle: 'Dashboard Manager', activePage: 'dashboard' }) %>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #6366f1;">
+      <div class="stat-lbl">Saldo Kas</div>
+      <div class="stat-val" style="color:#4f46e5;font-size:18px;">Rp <%= Number(balance).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #22c55e;">
+      <div class="stat-lbl">Total Masuk</div>
+      <div class="stat-val text-success" style="font-size:18px;">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #ef4444;">
+      <div class="stat-lbl">Total Keluar</div>
+      <div class="stat-val text-danger" style="font-size:18px;">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card" style="border-left:4px solid #f59e0b;">
+      <div class="stat-lbl">Pending</div>
+      <div class="stat-val text-warning"><%= stats.pending %> pengajuan</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card text-center">
+      <div class="stat-lbl">Total Pengajuan</div>
+      <div class="stat-val"><%= stats.totalRequests %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card text-center">
+      <div class="stat-lbl">Disetujui</div>
+      <div class="stat-val text-success"><%= stats.approved %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card text-center">
+      <div class="stat-lbl">Ditolak</div>
+      <div class="stat-val text-danger"><%= stats.rejected %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Mutations -->
+<div class="data-table">
+  <div class="tbl-head">
+    <span>Mutasi Kas Terbaru</span>
+    <a href="/manager/laporan" class="btn btn-sm btn-outline-secondary">Laporan Lengkap</a>
+  </div>
+  <table class="table table-hover">
+    <thead><tr><th>Tgl</th><th>Jenis</th><th>Keterangan</th><th>Pelaku</th><th>Jumlah</th></tr></thead>
+    <tbody>
+      <% recentMutations.forEach(m => { %>
+      <tr>
+        <td style="white-space:nowrap;"><%= m.created_at ? new Date(m.created_at).toLocaleDateString('id-ID') : '-' %></td>
+        <td>
+          <% if(m.type==='TOPUP') { %><span class="sbadge sbadge-masuk">⬆ Masuk</span>
+          <% } else { %><span class="sbadge sbadge-keluar">⬇ Keluar</span><% } %>
+        </td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= m.description %></td>
+        <td><%= m.actor %></td>
+        <td class="currency fw-semibold <%= m.type==='TOPUP'?'text-success':'text-danger' %>">
+          <%= m.type==='TOPUP'?'+':'-' %>Rp <%= Number(m.amount).toLocaleString('id-ID') %>
+        </td>
+      </tr>
+      <% }) %>
+      <% if(recentMutations.length===0) { %><tr><td colspan="5" class="text-center text-muted py-4">Belum ada data mutasi.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,89 @@
+<%- include('../partials/header', { pageTitle: 'Dashboard Finance', activePage: 'dashboard' }) %>
+
+<% if (flash.success && flash.success.length > 0) { %>
+  <div class="alert-success mb-4"><i class="bi bi-check-circle me-2"></i><%= flash.success %></div>
+<% } %>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe;">💰</div>
+      <div class="stat-lbl">Saldo Kas Kecil</div>
+      <div class="stat-val" style="color:#1d4ed8;font-size:20px;">Rp <%= Number(balance).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dcfce7;">⬆️</div>
+      <div class="stat-lbl">Total Kas Masuk</div>
+      <div class="stat-val text-success" style="font-size:18px;">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fee2e2;">⬇️</div>
+      <div class="stat-lbl">Total Kas Keluar</div>
+      <div class="stat-val text-danger" style="font-size:18px;">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Pending Requests -->
+<div class="data-table mb-4">
+  <div class="tbl-head">
+    <span>⏳ Pengajuan Menunggu Persetujuan (<%= pendingRequests.length %>)</span>
+    <a href="/finance/pengajuan" class="btn btn-sm btn-outline-secondary">Lihat Semua</a>
+  </div>
+  <% if (pendingRequests.length === 0) { %>
+    <div class="text-center py-4 text-muted"><i class="bi bi-check-all" style="font-size:30px;opacity:.3;"></i><p class="mt-2 mb-0">Tidak ada pengajuan yang menunggu.</p></div>
+  <% } else { %>
+  <table class="table table-hover">
+    <thead><tr><th>#</th><th>Pemohon</th><th>Keperluan</th><th>Jumlah</th><th>Tgl</th><th>Aksi</th></tr></thead>
+    <tbody>
+      <% pendingRequests.forEach(r => { %>
+      <tr>
+        <td><span class="text-muted">#<%= r.id %></span></td>
+        <td><strong><%= r.requester_name %></strong></td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= r.description %></td>
+        <td class="currency fw-bold">Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
+        <td><%= new Date(r.request_date).toLocaleDateString('id-ID') %></td>
+        <td>
+          <div class="d-flex gap-1">
+            <form action="/finance/pengajuan/<%= r.id %>/approve" method="POST">
+              <button type="submit" class="btn-success" style="padding:5px 10px;font-size:12px;" onclick="return confirm('Setujui pengajuan ini?')">✅ Setuju</button>
+            </form>
+            <a href="/finance/pengajuan/<%= r.id %>" class="btn btn-sm btn-outline-secondary">Detail</a>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<!-- Recent Requests -->
+<div class="data-table">
+  <div class="tbl-head"><span>📋 Riwayat Pengajuan Terbaru</span></div>
+  <table class="table table-hover">
+    <thead><tr><th>#</th><th>Pemohon</th><th>Keperluan</th><th>Jumlah</th><th>Status</th></tr></thead>
+    <tbody>
+      <% allRequests.forEach(r => { %>
+      <tr>
+        <td>#<%= r.id %></td>
+        <td><%= r.requester_name %></td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= r.description %></td>
+        <td class="currency">Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
+        <td>
+          <% if(r.status==='PENDING') { %><span class="sbadge sbadge-pending">⏳ Menunggu</span>
+          <% } else if(r.status==='APPROVED') { %><span class="sbadge sbadge-approved">✅ Disetujui</span>
+          <% } else { %><span class="sbadge sbadge-rejected">❌ Ditolak</span><% } %>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

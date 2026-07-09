@@ -1,0 +1,68 @@
+<%- include('../partials/header', { pageTitle: 'Semua Pengajuan — Audit View', activePage: 'pengajuan' }) %>
+
+<!-- Filter -->
+<div class="form-card mb-4" style="padding:16px 20px;">
+  <form method="GET" action="/auditor/pengajuan" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label" style="font-size:12px;">Status</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">Semua Status</option>
+        <option value="PENDING" <%= currentStatus==='PENDING'?'selected':'' %>>⏳ Menunggu</option>
+        <option value="APPROVED" <%= currentStatus==='APPROVED'?'selected':'' %>>✅ Disetujui</option>
+        <option value="REJECTED" <%= currentStatus==='REJECTED'?'selected':'' %>>❌ Ditolak</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label" style="font-size:12px;">Kategori</label>
+      <select name="kategori" class="form-select form-select-sm">
+        <option value="">Semua Kategori</option>
+        <% categories.forEach(c => { %>
+          <option value="<%= c.id %>" <%= currentKategori==c.id?'selected':'' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-sm btn-dark w-100">🔍 Filter</button>
+    </div>
+    <div class="col-md-2">
+      <a href="/auditor/pengajuan" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="data-table">
+  <div class="tbl-head">
+    <span>Ditemukan: <strong><%= requests.length %></strong> pengajuan</span>
+    <span class="ro-badge"><i class="bi bi-shield-check"></i> Audit View</span>
+  </div>
+  <% if(requests.length === 0) { %>
+    <div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:36px;opacity:.3;"></i><p class="mt-2">Tidak ada data.</p></div>
+  <% } else { %>
+  <table class="table table-hover">
+    <thead>
+      <tr><th>#</th><th>Tgl</th><th>Pemohon</th><th>Keperluan</th><th>Kategori</th><th>Jumlah</th><th>Status</th><th>Reviewer</th><th>Detail</th></tr>
+    </thead>
+    <tbody>
+      <% requests.forEach(r => { %>
+      <tr>
+        <td><span class="text-muted">#<%= r.id %></span></td>
+        <td style="white-space:nowrap;"><%= new Date(r.request_date).toLocaleDateString('id-ID') %></td>
+        <td><strong><%= r.requester_name %></strong></td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.description %>"><%= r.description %></td>
+        <td><span class="badge bg-light text-dark border"><%= r.category_name %></span></td>
+        <td class="currency fw-semibold">Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
+        <td>
+          <% if(r.status==='PENDING') { %><span class="sbadge sbadge-pending">⏳ Menunggu</span>
+          <% } else if(r.status==='APPROVED') { %><span class="sbadge sbadge-approved">✅ Disetujui</span>
+          <% } else { %><span class="sbadge sbadge-rejected">❌ Ditolak</span><% } %>
+        </td>
+        <td class="text-muted" style="font-size:12px;"><%= r.reviewer_name || '—' %></td>
+        <td><a href="/auditor/pengajuan/<%= r.id %>" class="btn btn-sm btn-outline-primary">🔍</a></td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

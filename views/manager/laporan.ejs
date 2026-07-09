@@ -1,0 +1,74 @@
+<%- include('../partials/header', { pageTitle: 'Laporan Kas Kecil', activePage: 'laporan' }) %>
+
+<!-- Summary -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #6366f1;">
+      <div class="stat-lbl">Saldo Kas Saat Ini</div>
+      <div class="stat-val" style="color:#4f46e5;">Rp <%= Number(balance).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #22c55e;">
+      <div class="stat-lbl">Total Kas Masuk</div>
+      <div class="stat-val text-success">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #ef4444;">
+      <div class="stat-lbl">Total Kas Keluar</div>
+      <div class="stat-val text-danger">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- KAS MASUK -->
+  <div class="col-md-6">
+    <div class="data-table">
+      <div class="tbl-head" style="background:#f0fdf4;">
+        <span><span class="sbadge sbadge-masuk me-2">⬆ KAS MASUK</span> Riwayat Top-Up</span>
+        <span class="fw-bold text-success" style="font-size:13px;">Rp <%= Number(totalIn).toLocaleString('id-ID') %></span>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>Tgl</th><th>Keterangan</th><th>Jumlah</th></tr></thead>
+        <tbody>
+          <% kasmasuk.forEach(f => { %>
+          <tr>
+            <td style="white-space:nowrap;"><%= new Date(f.created_at).toLocaleDateString('id-ID') %></td>
+            <td><%= f.description || 'Pengisian Dana' %></td>
+            <td class="currency fw-semibold text-success">+Rp <%= Number(f.amount).toLocaleString('id-ID') %></td>
+          </tr>
+          <% }) %>
+          <% if(kasmasuk.length===0) { %><tr><td colspan="3" class="text-center text-muted py-3">Belum ada data.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KAS KELUAR -->
+  <div class="col-md-6">
+    <div class="data-table">
+      <div class="tbl-head" style="background:#fff1f2;">
+        <span><span class="sbadge sbadge-keluar me-2">⬇ KAS KELUAR</span> Pengajuan Disetujui</span>
+        <span class="fw-bold text-danger" style="font-size:13px;">Rp <%= Number(totalOut).toLocaleString('id-ID') %></span>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>Tgl</th><th>Pemohon</th><th>Keperluan</th><th>Jumlah</th></tr></thead>
+        <tbody>
+          <% kaskeluar.forEach(r => { %>
+          <tr>
+            <td style="white-space:nowrap;"><%= r.created_at ? new Date(r.created_at).toLocaleDateString('id-ID') : '-' %></td>
+            <td><%= r.actor %></td>
+            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.description %>"><%= r.description %></td>
+            <td class="currency fw-semibold text-danger">-Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
+          </tr>
+          <% }) %>
+          <% if(kaskeluar.length===0) { %><tr><td colspan="4" class="text-center text-muted py-3">Belum ada data.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

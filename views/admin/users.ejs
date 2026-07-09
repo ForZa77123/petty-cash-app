@@ -1,0 +1,60 @@
+<%- include('../partials/header', { pageTitle: 'Manajemen User', activePage: 'users' }) %>
+
+<% if (flash.success && flash.success.length > 0) { %>
+  <div class="alert-success mb-4"><%= flash.success %></div>
+<% } %>
+<% if (flash.error && flash.error.length > 0) { %>
+  <div class="alert-error mb-4"><%= flash.error %></div>
+<% } %>
+
+<div class="data-table">
+  <div class="tbl-head">
+    <span>Total: <%= users.length %> user</span>
+    <a href="/admin/users/baru" class="btn-accent"><i class="bi bi-person-plus-fill"></i> Tambah User</a>
+  </div>
+  <table class="table table-hover">
+    <thead>
+      <tr><th>#</th><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Tgl Daftar</th><th>Aksi</th></tr>
+    </thead>
+    <tbody>
+      <% users.forEach(u => { %>
+      <tr>
+        <td><span class="text-muted"><%= u.id %></span></td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:32px;height:32px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0;">
+              <%= u.name.charAt(0).toUpperCase() %>
+            </div>
+            <strong><%= u.name %></strong>
+          </div>
+        </td>
+        <td class="text-muted"><%= u.email %></td>
+        <td>
+          <% const roleColors = {KARYAWAN:'bg-light text-dark',FINANCE:'bg-primary text-white',MANAGER:'bg-warning text-dark',ADMIN:'bg-danger text-white'}; %>
+          <span class="badge <%= roleColors[u.role] || 'bg-secondary text-white' %>"><%= u.role %></span>
+        </td>
+        <td>
+          <% if(u.is_active) { %>
+            <span class="sbadge sbadge-approved">● Aktif</span>
+          <% } else { %>
+            <span class="sbadge sbadge-rejected">● Nonaktif</span>
+          <% } %>
+        </td>
+        <td><%= new Date(u.created_at).toLocaleDateString('id-ID') %></td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="/admin/users/<%= u.id %>/edit" class="btn btn-sm btn-outline-primary">Edit</a>
+            <% if(u.id !== user.id) { %>
+            <form action="/admin/users/<%= u.id %>/delete" method="POST" onsubmit="return confirm('Hapus user <%= u.name %>?')">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+            </form>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/footer') %>

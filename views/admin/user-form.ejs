@@ -1,0 +1,62 @@
+<%- include('../partials/header', { pageTitle: editUser ? 'Edit User: ' + editUser.name : 'Tambah User Baru', activePage: editUser ? 'users' : 'user-baru' }) %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="mb-3"><a href="/admin/users" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Kembali</a></div>
+
+    <div class="form-card">
+      <h5 class="fw-bold mb-1"><%= editUser ? '✏️ Edit User' : '➕ Tambah User Baru' %></h5>
+      <p class="text-muted mb-4" style="font-size:13px;"><%= editUser ? 'Ubah data akun pengguna berikut.' : 'Buat akun baru untuk pengguna sistem.' %></p>
+
+      <% if (flash.error && flash.error.length > 0) { %>
+        <div class="alert-error mb-3"><%= flash.error %></div>
+      <% } %>
+
+      <form action="<%= editUser ? '/admin/users/' + editUser.id + '/update' : '/admin/users' %>" method="POST">
+        <div class="mb-3">
+          <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+          <input type="text" name="name" class="form-control" value="<%= editUser ? editUser.name : '' %>" placeholder="John Doe" required/>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Email <span class="text-danger">*</span></label>
+          <input type="email" name="email" class="form-control" value="<%= editUser ? editUser.email : '' %>" placeholder="nama@pettycash.test" required/>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password <%= editUser ? '(kosongkan jika tidak diubah)' : '' %> <% if(!editUser) { %><span class="text-danger">*</span><% } %></label>
+          <input type="password" name="password" class="form-control" placeholder="••••••••" <%= !editUser ? 'required' : '' %> minlength="6"/>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Role <span class="text-danger">*</span></label>
+          <select name="role" class="form-select" required>
+            <option value="">-- Pilih Role --</option>
+            <% ['KARYAWAN','FINANCE','MANAGER','AUDITOR','ADMIN'].forEach(r => { %>
+              <option value="<%= r %>" <%= editUser && editUser.role===r ? 'selected' : '' %>><%= r %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <% if(editUser) { %>
+        <div class="mb-4">
+          <label class="form-label">Status Akun</label>
+          <select name="is_active" class="form-select">
+            <option value="1" <%= editUser.is_active ? 'selected' : '' %>>Aktif</option>
+            <option value="0" <%= !editUser.is_active ? 'selected' : '' %>>Nonaktif</option>
+          </select>
+        </div>
+        <% } %>
+
+        <div class="d-flex gap-2">
+          <a href="/admin/users" class="btn btn-outline-secondary flex-fill">Batalkan</a>
+          <button type="submit" class="btn-accent flex-fill justify-content-center">
+            <i class="bi bi-check-lg"></i> <%= editUser ? 'Simpan Perubahan' : 'Tambah User' %>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,90 @@
+<%- include('../partials/header', { pageTitle: 'Manajemen Saldo Kas', activePage: 'saldo' }) %>
+
+<% if (flash.success && flash.success.length > 0) { %>
+  <div class="alert-success mb-4"><%= flash.success %></div>
+<% } %>
+<% if (flash.error && flash.error.length > 0) { %>
+  <div class="alert-error mb-4"><%= flash.error %></div>
+<% } %>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #6366f1;">
+      <div class="stat-lbl">Saldo Kas Saat Ini</div>
+      <div class="stat-val" style="color:#4f46e5;font-size:26px;">Rp <%= Number(balance).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #22c55e;">
+      <div class="stat-lbl">Total Kas Masuk</div>
+      <div class="stat-val text-success">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #ef4444;">
+      <div class="stat-lbl">Total Kas Keluar</div>
+      <div class="stat-val text-danger">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Top-up form -->
+<div class="form-card mb-4">
+  <h6 class="fw-bold mb-3">➕ Tambah Pengisian Dana Kas</h6>
+  <form action="/finance/topup" method="POST" class="row g-3 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Jumlah (Rp) <span class="text-danger">*</span></label>
+      <input type="number" name="amount" class="form-control" placeholder="2000000" min="1" required/>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Keterangan</label>
+      <input type="text" name="description" class="form-control" placeholder="Dana Bulan Juli 2026"/>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn-accent w-100 justify-content-center">Tambah</button>
+    </div>
+  </form>
+</div>
+
+<div class="row g-3">
+  <!-- Riwayat Masuk -->
+  <div class="col-md-6">
+    <div class="data-table">
+      <div class="tbl-head"><span class="sbadge sbadge-masuk me-2">⬆ MASUK</span> Riwayat Top-Up</div>
+      <table class="table table-hover">
+        <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Jumlah</th></tr></thead>
+        <tbody>
+          <% topUps.forEach(f => { %>
+          <tr>
+            <td style="white-space:nowrap;"><%= new Date(f.created_at).toLocaleDateString('id-ID') %></td>
+            <td><%= f.description || 'Top-Up' %></td>
+            <td class="currency fw-semibold text-success">+Rp <%= Number(f.amount).toLocaleString('id-ID') %></td>
+          </tr>
+          <% }) %>
+          <% if(topUps.length===0) { %><tr><td colspan="3" class="text-center text-muted py-3">Belum ada data.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Riwayat Keluar -->
+  <div class="col-md-6">
+    <div class="data-table">
+      <div class="tbl-head"><span class="sbadge sbadge-keluar me-2">⬇ KELUAR</span> Kas Disetujui</div>
+      <table class="table table-hover">
+        <thead><tr><th>Tanggal</th><th>Keperluan</th><th>Jumlah</th></tr></thead>
+        <tbody>
+          <% approvedRequests.forEach(r => { %>
+          <tr>
+            <td style="white-space:nowrap;"><%= new Date(r.reviewed_at).toLocaleDateString('id-ID') %></td>
+            <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.description %>"><%= r.description %></td>
+            <td class="currency fw-semibold text-danger">-Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
+          </tr>
+          <% }) %>
+          <% if(approvedRequests.length===0) { %><tr><td colspan="3" class="text-center text-muted py-3">Belum ada data.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,43 @@
+<%- include('../partials/header', { pageTitle: 'Detail Pengajuan #' + request.id, activePage: 'dashboard' }) %>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="mb-3"><a href="/dashboard" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Kembali</a></div>
+
+    <div class="form-card">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <h5 class="fw-bold mb-1">Detail Pengajuan <span class="text-muted">#<%= request.id %></span></h5>
+          <p class="text-muted mb-0" style="font-size:12px;">Diajukan pada <%= new Date(request.created_at).toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) %></p>
+        </div>
+        <% if(request.status==='PENDING') { %><span class="sbadge sbadge-pending" style="font-size:13px;padding:6px 14px;">⏳ Menunggu</span>
+        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved" style="font-size:13px;padding:6px 14px;">✅ Disetujui</span>
+        <% } else { %><span class="sbadge sbadge-rejected" style="font-size:13px;padding:6px 14px;">❌ Ditolak</span><% } %>
+      </div>
+      <hr/>
+
+      <div class="detail-row"><div class="detail-label">Pemohon</div><div class="detail-val"><%= request.requester_name %></div></div>
+      <div class="detail-row"><div class="detail-label">Tanggal Transaksi</div><div class="detail-val"><%= new Date(request.request_date).toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) %></div></div>
+      <div class="detail-row"><div class="detail-label">Kategori</div><div class="detail-val"><span class="badge bg-light text-dark border"><%= request.category_name %></span></div></div>
+      <div class="detail-row"><div class="detail-label">Keperluan</div><div class="detail-val"><%= request.description %></div></div>
+      <div class="detail-row"><div class="detail-label">Jumlah</div><div class="detail-val currency fw-bold" style="font-size:16px;">Rp <%= Number(request.amount).toLocaleString('id-ID') %></div></div>
+      <% if(request.rejection_note) { %>
+      <div class="detail-row"><div class="detail-label">Alasan Penolakan</div><div class="detail-val text-danger"><%= request.rejection_note %></div></div>
+      <% } %>
+
+      <div class="mt-4">
+        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk:</p>
+        <% if(request.receipt_image_path && !request.receipt_image_path.startsWith('sample/')) { %>
+          <img src="/uploads/<%= request.receipt_image_path %>" alt="Bukti Nota" class="receipt-img"/>
+        <% } else { %>
+          <div class="p-4 text-center bg-light rounded" style="border:2px dashed #e2e8f0;">
+            <i class="bi bi-image" style="font-size:32px;color:#cbd5e1;"></i>
+            <p class="text-muted mt-2 mb-0" style="font-size:12px;">Preview bukti nota</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

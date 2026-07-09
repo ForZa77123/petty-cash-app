@@ -1,0 +1,154 @@
+<%- include('../partials/header', { pageTitle: 'Ledger Kas Kecil — Full Audit', activePage: 'mutasi' }) %>
+
+<!-- Summary -->
+<div id="laporan-mutasi" class="bg-white p-2">
+  <div class="text-center mb-4 d-none" id="pdf-header">
+    <h4 class="fw-bold">Laporan Mutasi Kas Kecil</h4>
+    <p class="text-muted mb-0">PT Sinergi Artha Mandiri</p>
+    <p class="text-muted" style="font-size:13px;">Periode: <%= bulan ? bulan : 'Semua Bulan' %></p>
+  </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #6366f1;">
+      <div class="stat-lbl">Saldo Kas Saat Ini</div>
+      <div class="stat-val" style="color:#4f46e5;">Rp <%= Number(balance).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #22c55e;">
+      <div class="stat-lbl">Total Debit (Masuk)</div>
+      <div class="stat-val text-success">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card" style="border-left:4px solid #ef4444;">
+      <div class="stat-lbl">Total Kredit (Keluar)</div>
+      <div class="stat-val text-danger">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter -->
+<div class="form-card mb-4" style="padding:14px 20px;">
+  <form method="GET" action="/auditor/mutasi" class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label" style="font-size:12px;">Filter Bulan (YYYY-MM)</label>
+      <input type="month" name="bulan" class="form-control form-control-sm" value="<%= bulan %>"/>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-sm btn-dark w-100">🔍 Filter</button>
+    </div>
+    <div class="col-md-2">
+      <a href="/auditor/mutasi" class="btn btn-sm btn-outline-secondary w-100">Reset</a>
+    </div>
+    <div class="col-md-2">
+      <button type="button" onclick="exportPDF()" class="btn btn-sm btn-danger w-100"><i class="bi bi-file-pdf-fill"></i> Ekspor PDF</button>
+    </div>
+  </form>
+</div>
+
+<div class="row g-3">
+  <!-- KAS MASUK -->
+  <div class="col-12">
+    <div class="data-table mb-3">
+      <div class="tbl-head" style="background:#f0fdf4;">
+        <span><span class="sbadge sbadge-masuk me-2">⬆ DEBIT</span> Kas Masuk / Top-Up (<%= masuk.length %>)</span>
+        <span class="fw-bold text-success">+Rp <%= Number(totalIn).toLocaleString('id-ID') %></span>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>#</th><th>Tanggal & Waktu</th><th>Keterangan</th><th>Diinput Oleh</th><th>Jabatan</th><th class="text-end">Jumlah (Debit)</th></tr></thead>
+        <tbody>
+          <% masuk.forEach(m => { %>
+          <tr>
+            <td class="text-muted"><%= m.id %></td>
+            <td style="white-space:nowrap;font-size:12px;"><%= m.waktu ? new Date(m.waktu).toLocaleString('id-ID') : '-' %></td>
+            <td><%= m.description || 'Pengisian Dana Kas' %></td>
+            <td><strong><%= m.pelaku %></strong></td>
+            <td><span class="badge bg-light text-dark border" style="font-size:10px;"><%= m.pelaku_role %></span></td>
+            <td class="text-end currency fw-semibold text-success">+Rp <%= Number(m.amount).toLocaleString('id-ID') %></td>
+          </tr>
+          <% }) %>
+          <% if(!masuk.length) { %><tr><td colspan="6" class="text-center text-muted py-3">Tidak ada data.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KAS KELUAR -->
+  <div class="col-12">
+    <div class="data-table mb-3">
+      <div class="tbl-head" style="background:#fff1f2;">
+        <span><span class="sbadge sbadge-keluar me-2">⬇ KREDIT</span> Kas Keluar (Disetujui) (<%= keluar.length %>)</span>
+        <span class="fw-bold text-danger">-Rp <%= Number(totalOut).toLocaleString('id-ID') %></span>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>#</th><th>Tgl Disetujui</th><th>Keperluan</th><th>Pemohon</th><th>Jabatan</th><th class="text-end">Jumlah (Kredit)</th></tr></thead>
+        <tbody>
+          <% keluar.forEach(k => { %>
+          <tr>
+            <td class="text-muted">#<%= k.id %></td>
+            <td style="white-space:nowrap;font-size:12px;"><%= k.waktu ? new Date(k.waktu).toLocaleString('id-ID') : '-' %></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= k.description %>"><%= k.description %></td>
+            <td><strong><%= k.pelaku %></strong></td>
+            <td><span class="badge bg-light text-dark border" style="font-size:10px;"><%= k.pelaku_role %></span></td>
+            <td class="text-end currency fw-semibold text-danger">-Rp <%= Number(k.amount).toLocaleString('id-ID') %></td>
+          </tr>
+          <% }) %>
+          <% if(!keluar.length) { %><tr><td colspan="6" class="text-center text-muted py-3">Tidak ada data.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- DITOLAK -->
+  <div class="col-12">
+    <div class="data-table">
+      <div class="tbl-head" style="background:#fef2f2;">
+        <span><span class="sbadge sbadge-rejected me-2">❌ DITOLAK</span> Pengajuan Ditolak (<%= ditolak.length %>)</span>
+        <span class="text-muted" style="font-size:12px;">Tidak mempengaruhi saldo</span>
+      </div>
+      <table class="table table-hover">
+        <thead><tr><th>#</th><th>Tgl Ditolak</th><th>Keperluan</th><th>Pemohon</th><th>Alasan</th><th class="text-end">Jumlah</th></tr></thead>
+        <tbody>
+          <% ditolak.forEach(d => { %>
+          <tr style="opacity:.75;">
+            <td class="text-muted">#<%= d.id %></td>
+            <td style="white-space:nowrap;font-size:12px;"><%= d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-' %></td>
+            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= d.description %>"><%= d.description %></td>
+            <td><strong><%= d.pelaku %></strong></td>
+            <td class="text-danger" style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= d.rejection_note || '-' %></td>
+            <td class="text-end currency text-muted"><s>Rp <%= Number(d.amount).toLocaleString('id-ID') %></s></td>
+          </tr>
+          <% }) %>
+          <% if(!ditolak.length) { %><tr><td colspan="6" class="text-center text-muted py-3">Tidak ada penolakan.</td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  </div>
+</div>
+</div> <!-- End laporan-mutasi -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  function exportPDF() {
+    const element = document.getElementById('laporan-mutasi');
+    const header = document.getElementById('pdf-header');
+    
+    const opt = {
+      margin:       0.4,
+      filename:     'Laporan_Mutasi_Kas_Kecil_<%= bulan || "Semua" %>.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+    };
+    
+    header.classList.remove('d-none');
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+      header.classList.add('d-none');
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>
