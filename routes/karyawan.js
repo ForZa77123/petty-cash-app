@@ -6,14 +6,7 @@ const fs = require('fs');
 const db = require('../db/init');
 const { hasRole } = require('../middleware/auth');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, '..', 'uploads', 'receipts');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => cb(null, `receipt-${Date.now()}${path.extname(file.originalname)}`),
-});
+const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -49,9 +42,10 @@ router.post('/pengajuan', hasRole('KARYAWAN'), upload.single('receipt'), async (
     const { description, category_id, amount, request_date } = req.body;
     if (!req.file) { req.flash('error', 'Foto bukti nota wajib diunggah.'); return res.redirect('/pengajuan/baru'); }
     if (!description || !category_id || !amount || !request_date) { req.flash('error', 'Semua field wajib diisi.'); return res.redirect('/pengajuan/baru'); }
+    const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     await db.runAsync(
       'INSERT INTO reimbursement_requests (requester_id, category_id, description, amount, receipt_image_path, request_date) VALUES (?, ?, ?, ?, ?, ?)',
-      [req.session.user.id, category_id, description, parseFloat(amount), `receipts/${req.file.filename}`, request_date]
+      [req.session.user.id, category_id, description, parseFloat(amount), base64Image, request_date]
     );
     req.flash('success', 'Pengajuan berhasil dikirim! Menunggu persetujuan Finance.');
     res.redirect('/dashboard');

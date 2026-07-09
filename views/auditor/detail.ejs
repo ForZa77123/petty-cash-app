@@ -51,7 +51,7 @@
       <div class="mt-4">
         <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk:</p>
         <% if(request.receipt_image_path && !request.receipt_image_path.startsWith('sample/')) { %>
-          <img src="/uploads/<%= request.receipt_image_path %>" alt="Bukti Nota" class="receipt-img"/>
+          <img src="<%= request.receipt_image_path.startsWith('data:image') ? request.receipt_image_path : '/uploads/' + request.receipt_image_path %>" alt="Bukti Nota" class="receipt-img"/>
         <% } else { %>
           <div class="p-4 text-center bg-light rounded" style="border:2px dashed #e2e8f0;">
             <i class="bi bi-image" style="font-size:32px;color:#cbd5e1;"></i>
