@@ -14,8 +14,10 @@ router.get('/dashboard', hasRole('AUDITOR'), async (req, res) => {
       totalUsers:    (await db.getAsync('SELECT COUNT(*) AS c FROM users WHERE is_active=1')).c,
       topupCount:    (await db.getAsync('SELECT COUNT(*) AS c FROM petty_cash_funds')).c,
     };
-    const { totalIn }  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS totalIn FROM petty_cash_funds');
-    const { totalOut } = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS totalOut FROM reimbursement_requests WHERE status='APPROVED'");
+    const resIn  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
+    const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+    const totalIn = parseFloat(resIn.totalIn || 0);
+    const totalOut = parseFloat(resOut.totalOut || 0);
     const balance = totalIn - totalOut;
 
     // Last 8 activities (audit trail)
@@ -127,8 +129,10 @@ router.get('/mutasi', hasRole('AUDITOR'), async (req, res) => {
     const keluar   = await db.allAsync(keluarSql + ' ORDER BY waktu DESC', params);
     const ditolak  = await db.allAsync(rejectedSql + ' ORDER BY waktu DESC', params);
 
-    const { totalIn }  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS totalIn FROM petty_cash_funds');
-    const { totalOut } = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS totalOut FROM reimbursement_requests WHERE status='APPROVED'");
+    const resIn  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
+    const resOut = await db.getAsync("SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'");
+    const totalIn = parseFloat(resIn.totalIn || 0);
+    const totalOut = parseFloat(resOut.totalOut || 0);
 
     res.render('auditor/mutasi', {
       user: req.session.user, masuk, keluar, ditolak,
