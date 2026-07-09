@@ -75,6 +75,15 @@ pool.initTables = async () => {
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
       FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
     )`);
+
+    // Table for express-session (connect-pg-simple)
+    await client.query(`CREATE TABLE IF NOT EXISTS "session" (
+      "sid" varchar NOT NULL COLLATE "default",
+      "sess" json NOT NULL,
+      "expire" timestamp(6) NOT NULL,
+      CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+    )`);
+    await client.query(`CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire")`);
     
     await client.query('COMMIT');
   } catch (err) {

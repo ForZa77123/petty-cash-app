@@ -6,7 +6,8 @@ const methodOverride = require('method-override');
 const path = require('path');
 
 // Init DB (creates tables if not exists)
-require('./db/init');
+const pool = require('./db/init');
+const pgSession = require('connect-pg-simple')(session);
 
 const app = express();
 
@@ -23,6 +24,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Session
 app.use(session({
+  store: new pgSession({
+    pool: pool,
+    tableName: 'session'
+  }),
   secret: process.env.SESSION_SECRET || 'pettycash_secret',
   resave: false,
   saveUninitialized: false,
