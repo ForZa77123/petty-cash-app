@@ -26,7 +26,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(session({
   store: new pgSession({
     pool: pool,
-    tableName: 'session'
+    tableName: 'session',
+    createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET || 'pettycash_secret',
   resave: false,
