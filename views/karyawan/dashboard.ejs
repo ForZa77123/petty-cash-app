@@ -60,7 +60,8 @@
         <td class="currency">Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
         <td>
           <% if(r.status==='PENDING') { %><span class="sbadge sbadge-pending">⏳ Menunggu</span>
-          <% } else if(r.status==='APPROVED') { %><span class="sbadge sbadge-approved">✅ Disetujui</span>
+          <% } else if(r.status==='APPROVED') { %><span class="sbadge sbadge-approved">✔ Disetujui Manager</span>
+          <% } else if(r.status==='PAID') { %><span class="sbadge" style="background:#d1fae5;color:#065f46;">💵 Sudah Dibayar</span>
           <% } else { %><span class="sbadge sbadge-rejected">❌ Ditolak</span><% } %>
         </td>
         <td><a href="/pengajuan/<%= r.id %>" class="btn btn-sm btn-outline-secondary">Lihat</a></td>

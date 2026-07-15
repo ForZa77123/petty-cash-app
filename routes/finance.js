@@ -77,7 +77,7 @@ router.get('/pengajuan/:id', hasRole('FINANCE'), async (req, res) => {
   try {
     const request = await db.getAsync(
       `SELECT r.*, c.name AS category_name, u.name AS requester_name,
-              m.name AS manager_name, p.name AS payer_name
+              m.name AS manager_name, m.role AS reviewer_role, p.name AS payer_name
        FROM reimbursement_requests r
        JOIN categories c ON r.category_id=c.id
        JOIN users u ON r.requester_id=u.id

@@ -11,7 +11,8 @@
           <p class="text-muted mb-0" style="font-size:12px;">Diajukan pada <%= new Date(request.created_at).toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) %></p>
         </div>
         <% if(request.status==='PENDING') { %><span class="sbadge sbadge-pending" style="font-size:13px;padding:6px 14px;">⏳ Menunggu</span>
-        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved" style="font-size:13px;padding:6px 14px;">✅ Disetujui</span>
+        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved" style="font-size:13px;padding:6px 14px;">✔ Disetujui Manager</span>
+        <% } else if(request.status==='PAID') { %><span class="sbadge" style="background:#d1fae5;color:#065f46;font-size:13px;padding:6px 14px;">💵 Sudah Dibayar</span>
         <% } else { %><span class="sbadge sbadge-rejected" style="font-size:13px;padding:6px 14px;">❌ Ditolak</span><% } %>
       </div>
       <hr/>

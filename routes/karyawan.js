@@ -25,7 +25,7 @@ router.get('/dashboard', hasRole('KARYAWAN'), async (req, res) => {
     );
     const stats = {
       pending: requests.filter(r => r.status === 'PENDING').length,
-      approved: requests.filter(r => r.status === 'APPROVED').length,
+      approved: requests.filter(r => r.status === 'APPROVED' || r.status === 'PAID').length,
       rejected: requests.filter(r => r.status === 'REJECTED').length,
     };
     res.render('karyawan/dashboard', { user, requests, stats, flash: { error: req.flash('error'), success: req.flash('success') } });
