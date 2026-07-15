@@ -1,15 +1,19 @@
-<%- include('../partials/header', { pageTitle: 'Detail Pengajuan #' + request.id, activePage: 'laporan' }) %>
+<%- include('../partials/header', { pageTitle: 'Detail Pengajuan #' + request.id, activePage: 'pengajuan' }) %>
 
 <div class="row justify-content-center">
   <div class="col-lg-7">
-    <div class="mb-3"><a href="/manager/laporan" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Kembali</a></div>
+    <div class="mb-3"><a href="/manager/pengajuan" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Kembali</a></div>
 
     <div class="form-card">
       <div class="d-flex justify-content-between align-items-start mb-3">
-        <h5 class="fw-bold mb-0">Pengajuan #<%= request.id %> <span class="ro-badge ms-2"><i class="bi bi-eye"></i> Read Only</span></h5>
-        <% if(request.status==='PENDING') { %><span class="sbadge sbadge-pending">⏳ Menunggu</span>
-        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved">✅ Disetujui</span>
-        <% } else { %><span class="sbadge sbadge-rejected">❌ Ditolak</span><% } %>
+        <div>
+          <h5 class="fw-bold mb-1">Pengajuan #<%= request.id %></h5>
+          <p class="text-muted mb-0" style="font-size:12px;">Diajukan oleh <strong><%= request.requester_name %></strong></p>
+        </div>
+        <% if(request.status==='PENDING') { %><span class="sbadge sbadge-pending" style="font-size:13px;padding:6px 14px;">⏳ Menunggu Approval</span>
+        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved" style="font-size:13px;padding:6px 14px;">✔ Disetujui Manager</span>
+        <% } else if(request.status==='PAID') { %><span class="sbadge" style="background:#d1fae5;color:#065f46;font-size:13px;padding:6px 14px;">💵 Sudah Dibayar</span>
+        <% } else { %><span class="sbadge sbadge-rejected" style="font-size:13px;padding:6px 14px;">❌ Ditolak</span><% } %>
       </div>
       <hr/>
 
@@ -17,25 +21,69 @@
       <div class="detail-row"><div class="detail-label">Tanggal Transaksi</div><div class="detail-val"><%= new Date(request.request_date).toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) %></div></div>
       <div class="detail-row"><div class="detail-label">Kategori</div><div class="detail-val"><span class="badge bg-light text-dark border"><%= request.category_name %></span></div></div>
       <div class="detail-row"><div class="detail-label">Keperluan</div><div class="detail-val"><%= request.description %></div></div>
-      <div class="detail-row"><div class="detail-label">Jumlah</div><div class="detail-val currency fw-bold" style="font-size:16px;">Rp <%= Number(request.amount).toLocaleString('id-ID') %></div></div>
-      <% if(request.reviewer_name) { %>
-      <div class="detail-row"><div class="detail-label">Diproses Oleh</div><div class="detail-val"><%= request.reviewer_name %></div></div>
+      <div class="detail-row"><div class="detail-label">Jumlah Diminta</div><div class="detail-val currency fw-bold" style="font-size:16px;">Rp <%= Number(request.amount).toLocaleString('id-ID') %></div></div>
+
+      <% if(request.manager_name && (request.status==='APPROVED'||request.status==='REJECTED'||request.status==='PAID')) { %>
+      <div class="detail-row"><div class="detail-label">Disetujui/Ditolak Oleh</div><div class="detail-val"><%= request.manager_name %> <small class="text-muted">(Manager)</small></div></div>
+      <div class="detail-row"><div class="detail-label">Waktu Review</div><div class="detail-val"><%= new Date(request.reviewed_at).toLocaleString('id-ID') %></div></div>
       <% } %>
       <% if(request.rejection_note) { %>
       <div class="detail-row"><div class="detail-label">Alasan Penolakan</div><div class="detail-val text-danger"><%= request.rejection_note %></div></div>
       <% } %>
+      <% if(request.payer_name && request.status==='PAID') { %>
+      <div class="detail-row"><div class="detail-label">Dibayar Oleh</div><div class="detail-val"><%= request.payer_name %> <small class="text-muted">(Finance)</small></div></div>
+      <div class="detail-row"><div class="detail-label">Waktu Pembayaran</div><div class="detail-val"><%= new Date(request.paid_at).toLocaleString('id-ID') %></div></div>
+      <% } %>
 
+      <!-- Bukti Nota Karyawan -->
       <div class="mt-4">
-        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk:</p>
+        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk (dari Karyawan):</p>
         <% if(request.receipt_image_path && !request.receipt_image_path.startsWith('sample/')) { %>
           <img src="<%= request.receipt_image_path.startsWith('data:image') ? request.receipt_image_path : '/uploads/' + request.receipt_image_path %>" alt="Bukti Nota" class="receipt-img"/>
         <% } else { %>
           <div class="p-4 text-center bg-light rounded" style="border:2px dashed #e2e8f0;">
             <i class="bi bi-image" style="font-size:32px;color:#cbd5e1;"></i>
-            <p class="text-muted mt-2 mb-0" style="font-size:12px;">Preview bukti nota</p>
+            <p class="text-muted mt-2 mb-0" style="font-size:12px;">Preview bukti nota tidak tersedia</p>
           </div>
         <% } %>
       </div>
+
+      <!-- Bukti Pembayaran dari Finance -->
+      <% if(request.payment_proof) { %>
+      <div class="mt-4">
+        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Pembayaran (dari Finance):</p>
+        <img src="<%= request.payment_proof %>" alt="Bukti Pembayaran" class="receipt-img"/>
+      </div>
+      <% } %>
+
+      <!-- Tombol Approve / Reject — hanya untuk PENDING -->
+      <% if(request.status === 'PENDING') { %>
+      <hr class="mt-4"/>
+      <% if (flash.error && flash.error.length > 0) { %>
+        <div class="alert-error mb-3"><i class="bi bi-exclamation-circle me-2"></i><%= flash.error %></div>
+      <% } %>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <form action="/manager/pengajuan/<%= request.id %>/approve" method="POST">
+            <button type="submit" class="btn-success w-100" onclick="return confirm('Setujui pengajuan ini? Finance akan melanjutkan pembayaran.')">
+              ✅ Setujui Pengajuan
+            </button>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <button type="button" class="btn-danger w-100" data-bs-toggle="collapse" data-bs-target="#rejectForm">
+            ❌ Tolak Pengajuan
+          </button>
+        </div>
+      </div>
+      <div class="collapse mt-3" id="rejectForm">
+        <form action="/manager/pengajuan/<%= request.id %>/reject" method="POST">
+          <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
+          <textarea name="rejection_note" class="form-control mb-2" rows="3" placeholder="Masukkan alasan penolakan..." required></textarea>
+          <button type="submit" class="btn-danger">Kirim Penolakan</button>
+        </form>
+      </div>
+      <% } %>
     </div>
   </div>
 </div>

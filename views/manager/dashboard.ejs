@@ -1,7 +1,11 @@
 <%- include('../partials/header', { pageTitle: 'Dashboard Manager', activePage: 'dashboard' }) %>
 
-<!-- Stats -->
-<div class="row g-3 mb-4">
+<% if (flash.success && flash.success.length > 0) { %>
+  <div class="alert-success mb-4"><i class="bi bi-check-circle me-2"></i><%= flash.success %></div>
+<% } %>
+
+<!-- Stats Row 1 -->
+<div class="row g-3 mb-3">
   <div class="col-md-3">
     <div class="stat-card" style="border-left:4px solid #6366f1;">
       <div class="stat-lbl">Saldo Kas</div>
@@ -10,43 +14,84 @@
   </div>
   <div class="col-md-3">
     <div class="stat-card" style="border-left:4px solid #22c55e;">
-      <div class="stat-lbl">Total Masuk</div>
+      <div class="stat-lbl">Total Kas Masuk</div>
       <div class="stat-val text-success" style="font-size:18px;">Rp <%= Number(totalIn).toLocaleString('id-ID') %></div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="stat-card" style="border-left:4px solid #ef4444;">
-      <div class="stat-lbl">Total Keluar</div>
+      <div class="stat-lbl">Total Kas Keluar</div>
       <div class="stat-val text-danger" style="font-size:18px;">Rp <%= Number(totalOut).toLocaleString('id-ID') %></div>
     </div>
   </div>
   <div class="col-md-3">
     <div class="stat-card" style="border-left:4px solid #f59e0b;">
-      <div class="stat-lbl">Pending</div>
+      <div class="stat-lbl">Menunggu Approval</div>
       <div class="stat-val text-warning"><%= stats.pending %> pengajuan</div>
     </div>
   </div>
 </div>
 
+<!-- Stats Row 2 -->
 <div class="row g-3 mb-4">
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="stat-card text-center">
       <div class="stat-lbl">Total Pengajuan</div>
       <div class="stat-val"><%= stats.totalRequests %></div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
     <div class="stat-card text-center">
-      <div class="stat-lbl">Disetujui</div>
-      <div class="stat-val text-success"><%= stats.approved %></div>
+      <div class="stat-lbl">Disetujui (belum bayar)</div>
+      <div class="stat-val text-primary"><%= stats.approved %></div>
     </div>
   </div>
-  <div class="col-md-4">
+  <div class="col-md-3">
+    <div class="stat-card text-center">
+      <div class="stat-lbl">Sudah Dibayar</div>
+      <div class="stat-val text-success"><%= stats.paid %></div>
+    </div>
+  </div>
+  <div class="col-md-3">
     <div class="stat-card text-center">
       <div class="stat-lbl">Ditolak</div>
       <div class="stat-val text-danger"><%= stats.rejected %></div>
     </div>
   </div>
+</div>
+
+<!-- Pending Requests — butuh approval Manager -->
+<div class="data-table mb-4">
+  <div class="tbl-head">
+    <span>⏳ Pengajuan Menunggu Persetujuan Anda (<%= pendingRequests.length %>)</span>
+    <a href="/manager/pengajuan" class="btn btn-sm btn-outline-secondary">Lihat Semua</a>
+  </div>
+  <% if (pendingRequests.length === 0) { %>
+    <div class="text-center py-4 text-muted"><i class="bi bi-check-all" style="font-size:30px;opacity:.3;"></i><p class="mt-2 mb-0">Tidak ada pengajuan yang menunggu persetujuan.</p></div>
+  <% } else { %>
+  <table class="table table-hover">
+    <thead><tr><th>#</th><th>Pemohon</th><th>Keperluan</th><th>Jumlah</th><th>Tgl</th><th>Aksi</th></tr></thead>
+    <tbody>
+      <% pendingRequests.forEach(r => { %>
+      <tr>
+        <td><span class="text-muted">#<%= r.id %></span></td>
+        <td><strong><%= r.requester_name %></strong></td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= r.description %></td>
+        <td class="currency fw-bold">Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
+        <td><%= new Date(r.request_date).toLocaleDateString('id-ID') %></td>
+        <td>
+          <div class="d-flex gap-1">
+            <form action="/manager/pengajuan/<%= r.id %>/approve" method="POST">
+              <button type="submit" class="btn-success" style="padding:5px 10px;font-size:12px;" onclick="return confirm('Setujui pengajuan ini?')">✅ Setuju</button>
+            </form>
+            <a href="/manager/pengajuan/<%= r.id %>" class="btn btn-sm btn-outline-secondary">Detail</a>
+          </div>
+        </td>
+      </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
 </div>
 
 <!-- Recent Mutations -->

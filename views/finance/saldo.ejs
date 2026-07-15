@@ -73,14 +73,14 @@
       <table class="table table-hover">
         <thead><tr><th>Tanggal</th><th>Keperluan</th><th>Jumlah</th></tr></thead>
         <tbody>
-          <% approvedRequests.forEach(r => { %>
+          <% paidRequests.forEach(r => { %>
           <tr>
-            <td style="white-space:nowrap;"><%= new Date(r.reviewed_at).toLocaleDateString('id-ID') %></td>
+            <td style="white-space:nowrap;"><%= new Date(r.paid_at).toLocaleDateString('id-ID') %></td>
             <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.description %>"><%= r.description %></td>
             <td class="currency fw-semibold text-danger">-Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
           </tr>
           <% }) %>
-          <% if(approvedRequests.length===0) { %><tr><td colspan="3" class="text-center text-muted py-3">Belum ada data.</td></tr><% } %>
+          <% if(paidRequests.length===0) { %><tr><td colspan="3" class="text-center text-muted py-3">Belum ada data.</td></tr><% } %>
         </tbody>
       </table>
     </div>

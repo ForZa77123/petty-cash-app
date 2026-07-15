@@ -1,12 +1,12 @@
-<%- include('../partials/header', { pageTitle: 'Semua Pengajuan', activePage: 'pengajuan' }) %>
+<%- include('../partials/header', { pageTitle: 'Kelola Pengajuan', activePage: 'pengajuan' }) %>
 
 <!-- Filter tabs -->
 <div class="d-flex gap-2 mb-4 flex-wrap">
-  <a href="/finance/pengajuan" class="btn btn-sm <%= currentStatus==='ALL'?'btn-dark':'btn-outline-secondary' %>">Semua</a>
-  <a href="/finance/pengajuan?status=PENDING" class="btn btn-sm <%= currentStatus==='PENDING'?'btn-warning':'btn-outline-warning' %>">⏳ Menunggu Manager</a>
-  <a href="/finance/pengajuan?status=APPROVED" class="btn btn-sm <%= currentStatus==='APPROVED'?'btn-primary':'btn-outline-primary' %>">✔ Siap Dibayar</a>
-  <a href="/finance/pengajuan?status=PAID" class="btn btn-sm <%= currentStatus==='PAID'?'btn-success':'btn-outline-success' %>">💵 Sudah Dibayar</a>
-  <a href="/finance/pengajuan?status=REJECTED" class="btn btn-sm <%= currentStatus==='REJECTED'?'btn-danger':'btn-outline-danger' %>">❌ Ditolak</a>
+  <a href="/manager/pengajuan" class="btn btn-sm <%= currentStatus==='ALL'?'btn-dark':'btn-outline-secondary' %>">Semua</a>
+  <a href="/manager/pengajuan?status=PENDING" class="btn btn-sm <%= currentStatus==='PENDING'?'btn-warning':'btn-outline-warning' %>">⏳ Menunggu</a>
+  <a href="/manager/pengajuan?status=APPROVED" class="btn btn-sm <%= currentStatus==='APPROVED'?'btn-primary':'btn-outline-primary' %>">✔ Disetujui</a>
+  <a href="/manager/pengajuan?status=PAID" class="btn btn-sm <%= currentStatus==='PAID'?'btn-success':'btn-outline-success' %>">💵 Sudah Dibayar</a>
+  <a href="/manager/pengajuan?status=REJECTED" class="btn btn-sm <%= currentStatus==='REJECTED'?'btn-danger':'btn-outline-danger' %>">❌ Ditolak</a>
 </div>
 
 <% if (flash.success && flash.success.length > 0) { %>
@@ -19,7 +19,7 @@
     <div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:36px;opacity:.3;"></i><p class="mt-2">Tidak ada data pengajuan.</p></div>
   <% } else { %>
   <table class="table table-hover">
-    <thead><tr><th>#</th><th>Tgl</th><th>Pemohon</th><th>Keperluan</th><th>Kategori</th><th>Jumlah</th><th>Status</th><th>Aksi</th></tr></thead>
+    <thead><tr><th>#</th><th>Tgl</th><th>Pemohon</th><th>Keperluan</th><th>Jumlah</th><th>Status</th><th>Aksi</th></tr></thead>
     <tbody>
       <% requests.forEach(r => { %>
       <tr>
@@ -27,7 +27,6 @@
         <td style="white-space:nowrap;"><%= new Date(r.request_date).toLocaleDateString('id-ID') %></td>
         <td><%= r.requester_name %></td>
         <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="<%= r.description %>"><%= r.description %></td>
-        <td><span class="badge bg-light text-dark border"><%= r.category_name %></span></td>
         <td class="currency fw-semibold">Rp <%= Number(r.amount).toLocaleString('id-ID') %></td>
         <td>
           <% if(r.status==='PENDING') { %><span class="sbadge sbadge-pending">⏳ Menunggu</span>
@@ -35,7 +34,7 @@
           <% } else if(r.status==='PAID') { %><span class="sbadge" style="background:#d1fae5;color:#065f46;">💵 Dibayar</span>
           <% } else { %><span class="sbadge sbadge-rejected">❌ Ditolak</span><% } %>
         </td>
-        <td><a href="/finance/pengajuan/<%= r.id %>" class="btn btn-sm btn-outline-secondary">Detail</a></td>
+        <td><a href="/manager/pengajuan/<%= r.id %>" class="btn btn-sm btn-outline-secondary">Detail</a></td>
       </tr>
       <% }) %>
     </tbody>

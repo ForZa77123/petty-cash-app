@@ -10,9 +10,10 @@
           <h5 class="fw-bold mb-1">Pengajuan #<%= request.id %></h5>
           <p class="text-muted mb-0" style="font-size:12px;">Diajukan oleh <strong><%= request.requester_name %></strong></p>
         </div>
-        <% if(request.status==='PENDING') { %><span class="sbadge sbadge-pending" style="font-size:13px;padding:6px 14px;">⏳ Menunggu</span>
-        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved" style="font-size:13px;padding:6px 14px;">✅ Disetujui</span>
-        <% } else { %><span class="sbadge sbadge-rejected" style="font-size:13px;padding:6px 14px;">❌ Ditolak</span><% } %>
+        <% if(request.status==='PENDING') { %><span class="sbadge sbadge-pending" style="font-size:13px;padding:6px 14px;">⏳ Menunggu Manager</span>
+        <% } else if(request.status==='APPROVED') { %><span class="sbadge sbadge-approved" style="font-size:13px;padding:6px 14px;">✔ Siap Dibayar</span>
+        <% } else if(request.status==='PAID') { %><span class="sbadge" style="background:#d1fae5;color:#065f46;font-size:13px;padding:6px 14px;">💵 Sudah Dibayar</span>
+        <% } else { %><span class="sbadge sbadge-rejected" style="font-size:13px;padding:6px 14px;">❌ Ditolak Manager</span><% } %>
       </div>
       <hr/>
 
@@ -21,53 +22,59 @@
       <div class="detail-row"><div class="detail-label">Kategori</div><div class="detail-val"><span class="badge bg-light text-dark border"><%= request.category_name %></span></div></div>
       <div class="detail-row"><div class="detail-label">Keperluan</div><div class="detail-val"><%= request.description %></div></div>
       <div class="detail-row"><div class="detail-label">Jumlah Diminta</div><div class="detail-val currency fw-bold" style="font-size:16px;">Rp <%= Number(request.amount).toLocaleString('id-ID') %></div></div>
-      <% if(request.reviewer_name) { %>
-      <div class="detail-row"><div class="detail-label">Diproses Oleh</div><div class="detail-val"><%= request.reviewer_name %></div></div>
-      <div class="detail-row"><div class="detail-label">Waktu Diproses</div><div class="detail-val"><%= new Date(request.reviewed_at).toLocaleString('id-ID') %></div></div>
+
+      <% if(request.manager_name) { %>
+      <div class="detail-row"><div class="detail-label">Disetujui Manager</div><div class="detail-val"><%= request.manager_name %></div></div>
+      <div class="detail-row"><div class="detail-label">Waktu Approval</div><div class="detail-val"><%= new Date(request.reviewed_at).toLocaleString('id-ID') %></div></div>
       <% } %>
       <% if(request.rejection_note) { %>
       <div class="detail-row"><div class="detail-label">Alasan Penolakan</div><div class="detail-val text-danger"><%= request.rejection_note %></div></div>
       <% } %>
+      <% if(request.payer_name && request.status==='PAID') { %>
+      <div class="detail-row"><div class="detail-label">Dibayar Oleh</div><div class="detail-val"><%= request.payer_name %></div></div>
+      <div class="detail-row"><div class="detail-label">Waktu Pembayaran</div><div class="detail-val"><%= new Date(request.paid_at).toLocaleString('id-ID') %></div></div>
+      <% } %>
 
+      <!-- Bukti Nota dari Karyawan -->
       <div class="mt-4">
-        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk:</p>
+        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk (dari Karyawan):</p>
         <% if(request.receipt_image_path && !request.receipt_image_path.startsWith('sample/')) { %>
           <img src="<%= request.receipt_image_path.startsWith('data:image') ? request.receipt_image_path : '/uploads/' + request.receipt_image_path %>" alt="Bukti Nota" class="receipt-img"/>
         <% } else { %>
           <div class="p-4 text-center bg-light rounded" style="border:2px dashed #e2e8f0;">
             <i class="bi bi-image" style="font-size:32px;color:#cbd5e1;"></i>
-            <p class="text-muted mt-2 mb-0" style="font-size:12px;">Preview bukti nota</p>
+            <p class="text-muted mt-2 mb-0" style="font-size:12px;">Preview bukti nota tidak tersedia</p>
           </div>
         <% } %>
       </div>
 
-      <!-- Approve / Reject Actions -->
-      <% if(request.status === 'PENDING') { %>
+      <!-- Bukti Pembayaran yang sudah ada -->
+      <% if(request.payment_proof && request.status==='PAID') { %>
+      <div class="mt-4">
+        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Pembayaran:</p>
+        <img src="<%= request.payment_proof %>" alt="Bukti Bayar" class="receipt-img"/>
+      </div>
+      <% } %>
+
+      <!-- Form Proses Pembayaran — hanya untuk APPROVED -->
+      <% if(request.status === 'APPROVED') { %>
       <hr class="mt-4"/>
       <% if (flash.error && flash.error.length > 0) { %>
         <div class="alert-error mb-3"><i class="bi bi-exclamation-circle me-2"></i><%= flash.error %></div>
       <% } %>
-      <div class="row g-2">
-        <div class="col-md-6">
-          <form action="/finance/pengajuan/<%= request.id %>/approve" method="POST">
-            <button type="submit" class="btn-success w-100" onclick="return confirm('Setujui pengajuan ini dan kurangi saldo kas?')">
-              ✅ Setujui Pengajuan
-            </button>
-          </form>
-        </div>
-        <div class="col-md-6">
-          <button type="button" class="btn-danger w-100" data-bs-toggle="collapse" data-bs-target="#rejectForm">
-            ❌ Tolak Pengajuan
-          </button>
-        </div>
+      <div class="p-3 rounded mb-3" style="background:#fffbeb;border:1px solid #fde68a;">
+        <i class="bi bi-info-circle text-warning me-2"></i>
+        <strong>Pengajuan ini telah disetujui oleh Manager.</strong> Silakan proses pembayaran dan unggah bukti transfer/pembayaran.
       </div>
-      <div class="collapse mt-3" id="rejectForm">
-        <form action="/finance/pengajuan/<%= request.id %>/reject" method="POST">
-          <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
-          <textarea name="rejection_note" class="form-control mb-2" rows="3" placeholder="Masukkan alasan penolakan..." required></textarea>
-          <button type="submit" class="btn-danger">Kirim Penolakan</button>
-        </form>
-      </div>
+      <form action="/finance/pengajuan/<%= request.id %>/pay" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Bukti Pembayaran <span class="text-muted fw-normal">(JPG, PNG, PDF — opsional)</span></label>
+          <input type="file" name="payment_proof" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
+        </div>
+        <button type="submit" class="btn-success w-100" onclick="return confirm('Konfirmasi pembayaran sebesar Rp <%= Number(request.amount).toLocaleString(\"id-ID\") %>?')">
+          💵 Konfirmasi Pembayaran
+        </button>
+      </form>
       <% } %>
     </div>
   </div>

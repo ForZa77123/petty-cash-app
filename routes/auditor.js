@@ -10,17 +10,17 @@ router.get('/dashboard', hasRole('AUDITOR'), async (req, res) => {
       totalRequests: (await db.getAsync('SELECT COUNT(*) AS c FROM reimbursement_requests')).c,
       pending:       (await db.getAsync("SELECT COUNT(*) AS c FROM reimbursement_requests WHERE status='PENDING'")).c,
       approved:      (await db.getAsync("SELECT COUNT(*) AS c FROM reimbursement_requests WHERE status='APPROVED'")).c,
+      paid:          (await db.getAsync("SELECT COUNT(*) AS c FROM reimbursement_requests WHERE status='PAID'")).c,
       rejected:      (await db.getAsync("SELECT COUNT(*) AS c FROM reimbursement_requests WHERE status='REJECTED'")).c,
       totalUsers:    (await db.getAsync('SELECT COUNT(*) AS c FROM users WHERE is_active=1')).c,
       topupCount:    (await db.getAsync('SELECT COUNT(*) AS c FROM petty_cash_funds')).c,
     };
-    const resIn  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
+    const resIn  = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds`);
+    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='PAID'`);
     const totalIn = parseFloat(resIn.totalIn || 0);
     const totalOut = parseFloat(resOut.totalOut || 0);
     const balance = totalIn - totalOut;
 
-    // Last 8 activities (audit trail)
     const recentActivity = await db.allAsync(`
       SELECT 'TOP-UP' AS jenis, f.amount, f.description, f.created_at AS waktu,
              u.name AS pelaku, NULL AS status, NULL AS reviewer
@@ -28,12 +28,13 @@ router.get('/dashboard', hasRole('AUDITOR'), async (req, res) => {
       UNION ALL
       SELECT
         CASE r.status
-          WHEN 'APPROVED' THEN 'DISETUJUI'
+          WHEN 'APPROVED' THEN 'DISETUJUI MANAGER'
+          WHEN 'PAID' THEN 'DIBAYAR FINANCE'
           WHEN 'REJECTED' THEN 'DITOLAK'
           ELSE 'PENGAJUAN'
         END,
         r.amount, r.description,
-        COALESCE(r.reviewed_at, r.created_at),
+        COALESCE(r.paid_at, r.reviewed_at, r.created_at),
         u.name, r.status, rv.name
       FROM reimbursement_requests r
       JOIN users u ON r.requester_id = u.id
@@ -47,7 +48,7 @@ router.get('/dashboard', hasRole('AUDITOR'), async (req, res) => {
   } catch (e) { console.error(e); res.redirect('/login'); }
 });
 
-// GET /auditor/pengajuan — Semua pengajuan, semua status
+// GET /auditor/pengajuan
 router.get('/pengajuan', hasRole('AUDITOR'), async (req, res) => {
   try {
     const { status, kategori } = req.query;
@@ -60,7 +61,7 @@ router.get('/pengajuan', hasRole('AUDITOR'), async (req, res) => {
     `;
     const params = [];
     const conditions = [];
-    if (status && ['PENDING','APPROVED','REJECTED'].includes(status)) {
+    if (status && ['PENDING','APPROVED','REJECTED','PAID'].includes(status)) {
       conditions.push('r.status = ?'); params.push(status);
     }
     if (kategori) {
@@ -79,16 +80,18 @@ router.get('/pengajuan', hasRole('AUDITOR'), async (req, res) => {
   } catch (e) { console.error(e); res.redirect('/auditor/dashboard'); }
 });
 
-// GET /auditor/pengajuan/:id — Detail + audit trail
+// GET /auditor/pengajuan/:id
 router.get('/pengajuan/:id', hasRole('AUDITOR'), async (req, res) => {
   try {
     const request = await db.getAsync(`
       SELECT r.*, c.name AS category_name, u.name AS requester_name,
-             rv.name AS reviewer_name, rv.role AS reviewer_role
+             rv.name AS reviewer_name, rv.role AS reviewer_role,
+             p.name AS payer_name
       FROM reimbursement_requests r
       JOIN categories c ON r.category_id = c.id
       JOIN users u ON r.requester_id = u.id
       LEFT JOIN users rv ON r.reviewed_by = rv.id
+      LEFT JOIN users p ON r.paid_by = p.id
       WHERE r.id = ?
     `, [req.params.id]);
 
@@ -97,7 +100,7 @@ router.get('/pengajuan/:id', hasRole('AUDITOR'), async (req, res) => {
   } catch (e) { console.error(e); res.redirect('/auditor/pengajuan'); }
 });
 
-// GET /auditor/mutasi — Semua mutasi kas (full ledger)
+// GET /auditor/mutasi
 router.get('/mutasi', hasRole('AUDITOR'), async (req, res) => {
   try {
     const { bulan } = req.query;
@@ -106,11 +109,11 @@ router.get('/mutasi', hasRole('AUDITOR'), async (req, res) => {
       u.name AS pelaku, u.role AS pelaku_role, NULL AS status, NULL AS rejection_note
       FROM petty_cash_funds f JOIN users u ON f.created_by = u.id`;
 
-    let keluarSql = `SELECT 'KELUAR' AS tipe, r.id, r.amount, r.description, r.reviewed_at AS waktu,
+    let keluarSql = `SELECT 'KELUAR' AS tipe, r.id, r.amount, r.description, r.paid_at AS waktu,
       u.name AS pelaku, u.role AS pelaku_role, r.status, r.rejection_note
       FROM reimbursement_requests r
       JOIN users u ON r.requester_id = u.id
-      WHERE r.status = 'APPROVED'`;
+      WHERE r.status = 'PAID'`;
 
     let rejectedSql = `SELECT 'DITOLAK' AS tipe, r.id, r.amount, r.description, r.reviewed_at AS waktu,
       u.name AS pelaku, u.role AS pelaku_role, r.status, r.rejection_note
@@ -120,7 +123,7 @@ router.get('/mutasi', hasRole('AUDITOR'), async (req, res) => {
 
     if (bulan) {
       masukSql  += ` AND to_char(f.created_at, 'YYYY-MM') = ?`;
-      keluarSql += ` AND to_char(r.reviewed_at, 'YYYY-MM') = ?`;
+      keluarSql += ` AND to_char(r.paid_at, 'YYYY-MM') = ?`;
       rejectedSql += ` AND to_char(r.reviewed_at, 'YYYY-MM') = ?`;
     }
 
@@ -129,8 +132,8 @@ router.get('/mutasi', hasRole('AUDITOR'), async (req, res) => {
     const keluar   = await db.allAsync(keluarSql + ' ORDER BY waktu DESC', params);
     const ditolak  = await db.allAsync(rejectedSql + ' ORDER BY waktu DESC', params);
 
-    const resIn  = await db.getAsync('SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds');
-    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='APPROVED'`);
+    const resIn  = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalIn" FROM petty_cash_funds`);
+    const resOut = await db.getAsync(`SELECT COALESCE(SUM(amount),0) AS "totalOut" FROM reimbursement_requests WHERE status='PAID'`);
     const totalIn = parseFloat(resIn.totalIn || 0);
     const totalOut = parseFloat(resOut.totalOut || 0);
 
