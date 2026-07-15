@@ -54,7 +54,14 @@ router.post('/pengajuan', hasRole('KARYAWAN'), upload.single('receipt'), async (
 
 router.get('/pengajuan/:id', hasRole('KARYAWAN'), async (req, res) => {
   const request = await db.getAsync(
-    'SELECT r.*, c.name AS category_name, u.name AS requester_name FROM reimbursement_requests r JOIN categories c ON r.category_id = c.id JOIN users u ON r.requester_id = u.id WHERE r.id = ? AND r.requester_id = ?',
+    `SELECT r.*, c.name AS category_name, u.name AS requester_name, 
+            m.name AS manager_name, m.role AS reviewer_role, p.name AS payer_name
+     FROM reimbursement_requests r 
+     JOIN categories c ON r.category_id = c.id 
+     JOIN users u ON r.requester_id = u.id 
+     LEFT JOIN users m ON r.reviewed_by = m.id
+     LEFT JOIN users p ON r.paid_by = p.id
+     WHERE r.id = ? AND r.requester_id = ?`,
     [req.params.id, req.session.user.id]
   );
   if (!request) { req.flash('error', 'Pengajuan tidak ditemukan.'); return res.redirect('/dashboard'); }

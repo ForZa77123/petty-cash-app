@@ -25,6 +25,16 @@
       <% if(request.rejection_note) { %>
       <div class="detail-row"><div class="detail-label">Alasan Penolakan</div><div class="detail-val text-danger"><%= request.rejection_note %></div></div>
       <% } %>
+      
+      <% if(request.manager_name && request.reviewer_role === 'MANAGER') { %>
+      <div class="detail-row"><div class="detail-label">Disetujui/Ditolak Oleh</div><div class="detail-val"><%= request.manager_name %></div></div>
+      <div class="detail-row"><div class="detail-label">Waktu Review</div><div class="detail-val"><%= new Date(request.reviewed_at).toLocaleString('id-ID') %></div></div>
+      <% } %>
+      
+      <% if(request.payer_name && request.status==='PAID') { %>
+      <div class="detail-row"><div class="detail-label">Dibayar Oleh</div><div class="detail-val"><%= request.payer_name %></div></div>
+      <div class="detail-row"><div class="detail-label">Waktu Pembayaran</div><div class="detail-val"><%= new Date(request.paid_at).toLocaleString('id-ID') %></div></div>
+      <% } %>
 
       <div class="mt-4">
         <p class="fw-bold mb-2" style="font-size:13px;">Bukti Nota / Struk:</p>
@@ -37,6 +47,13 @@
           </div>
         <% } %>
       </div>
+      
+      <% if(request.payment_proof && request.status==='PAID') { %>
+      <div class="mt-4">
+        <p class="fw-bold mb-2" style="font-size:13px;">Bukti Pembayaran (dari Finance):</p>
+        <img src="<%= request.payment_proof %>" alt="Bukti Pembayaran" class="receipt-img"/>
+      </div>
+      <% } %>
     </div>
   </div>
 </div>
